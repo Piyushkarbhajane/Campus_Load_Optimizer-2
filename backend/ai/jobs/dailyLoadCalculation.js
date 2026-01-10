@@ -1,9 +1,9 @@
-import { schedule } from 'node-cron';
-import loadCalculator from '../services/loadCalculator.js';
-import aiService from '../services/aiService.js';
-import { findOneAndUpdate } from '../models/studentLoad.js';
-import { find } from '../../models/User.js';
-import { find as _find } from '../../models/Deadline.js';
+const { schedule } = require('node-cron');
+const loadCalculator = require('../services/loadCalculator.js');
+const aiService = require('../services/aiService.js');
+const { findOneAndUpdate } = require('../models/studentLoad.js');
+const { find } = require('../../models/User.js');
+const { find: _find } = require('../../models/Deadline.js');
 
 /**
  * Run every day at 6:00 AM
@@ -38,45 +38,54 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
           {
             student_id: student._id,
             date: today
-          },{
-student_id: student._id,
-date: today,
-load_score: todayLoad.load_score,
-risk_level: todayLoad.risk_level,
-deadlines_count: todayLoad.deadlines_count,
-deadlines: todayLoad.deadlines
-},
-{
-upsert: true,
-new: true
-}
-);
-    processedCount++;
+          },
+          {
+            student_id: student._id,
+            date: today,
+            load_score: todayLoad.load_score,
+            risk_level: todayLoad.risk_level,
+            deadlines_count: todayLoad.deadlines_count,
+            deadlines: todayLoad.deadlines
+          },
+          {
+            upsert: true,
+            new: true
+          }
+        );
 
-    // Generate AI tip if high load
-    if (todayLoad.risk_level === 'danger' || todayLoad.risk_level === 'warning') {
-      const loadData = loadCalculator.calculateLoadRange(deadlines, today, 7);
-      await aiService.generateStudentTip(student, loadData);
-      tipsGenerated++;
+        processedCount++;
+
+        // Generate AI tip if high load
+        if (todayLoad.risk_level === 'danger' || todayLoad.risk_level === 'warning') {
+          const loadData = loadCalculator.calculateLoadRange(deadlines, today, 7);
+          await aiService.generateStudentTip(student, loadData);
+          tipsGenerated++;
+        }
+
+      } catch (studentError) {
+        console.error(`Error processing student ${student._id}:`, studentError.message);
+      }
     }
 
-  } catch (studentError) {
-    console.error(`Error processing student ${student._id}:`, studentError.message);
+    console.log(`✅ Daily load calculation complete!`);
+    console.log(`   - Processed: ${processedCount} students`);
+    console.log(`   - Generated: ${tipsGenerated} AI tips`);
+
+  } catch (error) {
+    console.error('❌ Error in daily load calculation job:', error);
   }
-}
-
-console.log(`✅ Daily load calculation complete!`);
-console.log(`   - Processed: ${processedCount} students`);
-console.log(`   - Generated: ${tipsGenerated} AI tips`);
-} catch (error) {
-console.error('❌ Error in daily load calculation job:', error);
-}
 }, {
-timezone: "Asia/Kolkata" 
+  timezone: "Asia/Kolkata" 
 });
-// Export for manual triggering
-export const job = dailyLoadJob;
 
-export const runNow = async () => {
+// Export for manual triggering
+const job = dailyLoadJob;
+
+const runNow = async () => {
   console.log('🔧 Manually triggering daily load calculation...');
+};
+
+module.exports = {
+  job,
+  runNow
 };

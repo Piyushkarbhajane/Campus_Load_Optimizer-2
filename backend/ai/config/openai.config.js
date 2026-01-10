@@ -1,10 +1,11 @@
-import OpenAI from 'openai';
+const OpenAI = require('openai');
 
-// if (!process.env.OPENAI_API_KEY) {
-//   throw new Error('OPENAI_API_KEY is not defined in environment variables');
-// }
+if (!process.env.OPENAI_API_KEY) {
+  throw new Error('OPENAI_API_KEY is not defined in environment variables');
+}
 
 const openai = new OpenAI({
-  apiKey:"key"});
+  apiKey: process.env.OPENAI_API_KEY
+});
 
-export default openai;
+module.exports = openai;

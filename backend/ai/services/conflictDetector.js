@@ -69,7 +69,7 @@ class ConflictDetector {
     const suggestions = [];
 
     // Check ±7 days around the conflict
-    for (let offset = -daysRange/2; offset <= daysRange/2; offset++) {
+    for (let offset = -daysRange / 2; offset <= daysRange / 2; offset++) {
       if (offset === 0) continue; // Skip the conflict date itself
 
       const alternativeDate = new Date(conflictDate);
@@ -77,7 +77,7 @@ class ConflictDetector {
       const altDateStr = alternativeDate.toISOString().split('T')[0];
 
       // Count deadlines on this alternative date
-      const deadlinesOnAltDate = allDeadlines.filter(d => 
+      const deadlinesOnAltDate = allDeadlines.filter(d =>
         new Date(d.deadline_date).toISOString().split('T')[0] === altDateStr
       );
 
@@ -85,7 +85,10 @@ class ConflictDetector {
         date: altDateStr,
         existing_deadlines: deadlinesOnAltDate.length,
         days_from_conflict: offset,
-        suitability_score: this.calculateSuitability(deadlinesOnAltDate.length, Math.abs(offset))
+        suitability_score: this.calculateSuitability(
+          deadlinesOnAltDate.length,
+          Math.abs(offset)
+        )
       });
     }
 
@@ -105,4 +108,4 @@ class ConflictDetector {
   }
 }
 
-export default new ConflictDetector();
+module.exports = new ConflictDetector();

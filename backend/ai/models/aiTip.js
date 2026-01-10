@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
 const aiTipSchema = new Schema({
   user_id: {
@@ -38,6 +38,7 @@ const aiTipSchema = new Schema({
 }, {
   timestamps: true
 });
+
 aiTipSchema.index({ expires_at: 1 }, { expireAfterSeconds: 0 });
 
-export default model('AiTip', aiTipSchema);
+module.exports = model('AiTip', aiTipSchema);

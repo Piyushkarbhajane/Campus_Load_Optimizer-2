@@ -1,12 +1,14 @@
-import { Router } from 'express';
-import aiService from '../services/aiService.js';
-import loadCalculator from '../services/loadCalculator.js';
-import conflictDetector from '../services/conflictDetector.js';
-import { find } from '../models/studentLoad.js';
-import { findById } from '../../models/User.js';
-import { findById as _findById } from '../../models/Course.js';
-import { find as _find } from '../../models/Deadline.js';
+const { Router } = require('express');
+const aiService = require('../services/aiService.js');
+const loadCalculator = require('../services/loadCalculator.js');
+const conflictDetector = require('../services/conflictDetector.js');
+const { find } = require('../models/studentLoad.js');
+const { findById } = require('../../models/User.js');
+const { findById: _findById } = require('../../models/Course.js');
+const { find: _find } = require('../../models/Deadline.js');
+
 const router = Router();
+
 /**
  * POST /api/ai/student-tip
  * Generate AI tip for student
@@ -59,7 +61,7 @@ router.post('/professor-suggestion', async (req, res) => {
     }
 
     const deadlines = await _find({ course_id: courseId });
-    
+
     // Detect conflicts
     const conflicts = conflictDetector.detectConflicts(deadlines);
 
@@ -68,7 +70,7 @@ router.post('/professor-suggestion', async (req, res) => {
     for (let i = 0; i < 14; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
-      
+
       // Get all students' loads for this date
       const studentLoads = await find({
         student_id: { $in: course.student_ids },
@@ -121,8 +123,8 @@ router.post('/professor-suggestion', async (req, res) => {
  */
 router.get('/conflicts/:courseId', async (req, res) => {
   try {
-    const deadlines = await _find({ 
-      course_id: req.params.courseId 
+    const deadlines = await _find({
+      course_id: req.params.courseId
     }).populate('course_id', 'name');
 
     const conflicts = conflictDetector.detectConflicts(deadlines);
@@ -161,7 +163,11 @@ router.get('/load/:studentId', async (req, res) => {
       course_id: { $in: student.enrolled_courses || [] }
     }).populate('course_id', 'name');
 
-    const loadData = loadCalculator.calculateLoadRange(deadlines, new Date(), parseInt(days));
+    const loadData = loadCalculator.calculateLoadRange(
+      deadlines,
+      new Date(),
+      parseInt(days)
+    );
 
     res.json({
       success: true,
@@ -182,7 +188,10 @@ router.get('/load/:studentId', async (req, res) => {
 router.get('/tips/:userId', async (req, res) => {
   try {
     const { limit = 5 } = req.query;
-    const tips = await aiService.getUserTips(req.params.userId, parseInt(limit));
+    const tips = await aiService.getUserTips(
+      req.params.userId,
+      parseInt(limit)
+    );
 
     res.json({
       success: true,
@@ -214,4 +223,4 @@ router.put('/tips/:tipId/read', async (req, res) => {
   }
 });
 
-export default router;
+module.exports = router;

@@ -1,18 +1,21 @@
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config({ path: '../../.env' });
-import openai from '../config/openai.config.js';
-import loadCalculator from '../services/loadcalculator.js';
+
+const openai = require('../config/openai.config.js');
+const loadCalculator = require('../services/loadCalculator.js');
 
 async function testOpenAI() {
   console.log('🧪 Testing OpenAI connection...\n');
-  
+
   try {
     const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [{ 
-        role: "user", 
-        content: "Say 'AI integration working!' in exactly 5 words." 
-      }],
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'user',
+          content: "Say 'AI integration working!' in exactly 5 words."
+        }
+      ],
       max_tokens: 20
     });
 
@@ -34,7 +37,7 @@ function testLoadCalculator() {
       _id: '1',
       title: 'Math Homework',
       course_name: 'Calculus',
-      deadline_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days
+      deadline_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000),
       difficulty: 3,
       type: 'assignment'
     },
@@ -42,14 +45,14 @@ function testLoadCalculator() {
       _id: '2',
       title: 'Physics Exam',
       course_name: 'Physics',
-      deadline_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days
+      deadline_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
       difficulty: 5,
       type: 'exam'
     }
   ];
 
   const loadData = loadCalculator.calculateDailyLoad(sampleDeadlines, new Date());
-  
+
   console.log('📊 Load Data:', JSON.stringify(loadData, null, 2));
   console.log('✅ Load Calculator working!\n');
 }

@@ -1,6 +1,6 @@
-import { chat } from '../config/openai.config.js';
-import { create, find, findByIdAndUpdate } from '../models/aiTip.js';
-import { studentTipPrompt, professorSuggestionPrompt } from '../utils/aiPrompts.js';
+const { chat } = require('../config/openai.config.js');
+const { create, find, findByIdAndUpdate } = require('../models/aiTip.js');
+const { studentTipPrompt, professorSuggestionPrompt } = require('../utils/aiPrompts.js');
 
 class AIService {
   /**
@@ -10,7 +10,7 @@ class AIService {
     try {
       // Filter high-load days
       const highLoadDays = loadData.filter(d => d.load_score >= 40);
-      
+
       if (highLoadDays.length === 0) {
         return this.generatePositiveTip(studentData);
       }
@@ -165,4 +165,4 @@ class AIService {
   }
 }
 
-export default new AIService();
+module.exports = new AIService();

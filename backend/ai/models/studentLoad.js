@@ -1,4 +1,4 @@
-import { Schema, model } from 'mongoose';
+const { Schema, model } = require('mongoose');
 
 const studentLoadSchema = new Schema({
   student_id: {
@@ -40,4 +40,4 @@ const studentLoadSchema = new Schema({
 
 studentLoadSchema.index({ student_id: 1, date: 1 }, { unique: true });
 
-export default model('StudentLoad', studentLoadSchema);
+module.exports = model('StudentLoad', studentLoadSchema);

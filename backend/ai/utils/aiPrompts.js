@@ -1,4 +1,4 @@
-export function studentTipPrompt(studentName, loadData) {
+function studentTipPrompt(studentName, loadData) {
   const formattedData = loadData
     .map(d => `- ${d.date}: ${d.load_score}% load (${d.deadlines_count} deadlines, ${d.risk_level} level)`)
     .join('\n');
@@ -15,7 +15,8 @@ Provide:
 
 Keep it under 100 words, friendly and supportive tone.`;
 }
-export function professorSuggestionPrompt(courseName, overloadDays, deadlines, conflicts) {
+
+function professorSuggestionPrompt(courseName, overloadDays, deadlines, conflicts) {
   const overloadInfo = overloadDays
     .map(d => `- ${d.date}: ${d.average_load}% average class load`)
     .join('\n');
@@ -44,7 +45,8 @@ Suggest:
 
 Keep it professional, under 120 words.`;
 }
-export function conflictWarningPrompt(conflict) {
+
+function conflictWarningPrompt(conflict) {
   const deadlineList = conflict.deadlines
     .map(d => `- ${d.title} (${d.type}, difficulty ${d.difficulty})`)
     .join('\n');
@@ -56,3 +58,9 @@ Severity: ${conflict.severity}
 
 Explain why this is problematic and suggest action in 2-3 sentences.`;
 }
+
+module.exports = {
+  studentTipPrompt,
+  professorSuggestionPrompt,
+  conflictWarningPrompt
+};
