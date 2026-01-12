@@ -1,16 +1,16 @@
 const { Router } = require('express');
-const aiService = require('../services/aiService.js');
-const loadCalculator = require('../services/loadCalculator.js');
-const conflictDetector = require('../services/conflictDetector.js');
-const { find } = require('../models/studentLoad.js');
-const { findById } = require('../../models/User.js');
-const { findById: _findById } = require('../../models/Course.js');
-const { find: _find } = require('../../models/Deadline.js');
+const aiService = require('../services/aiService');
+const loadCalculator = require('../services/loadCalculator');
+const conflictDetector = require('../services/conflictDetector');
+const { find } = require('../models/studentLoad');
+const { findById } = require('../models/user');
+const { findById: _findById } = require('../models/course');
+const { find: _find } = require('../models/deadline');
 
 const router = Router();
 
 /**
- * POST /api/ai/student-tip
+ * POST /ai/student-tip
  * Generate AI tip for student
  */
 router.post('/student-tip', async (req, res) => {
@@ -49,7 +49,7 @@ router.post('/student-tip', async (req, res) => {
 });
 
 /**
- * POST /api/ai/professor-suggestion
+ * POST /ai/professor-suggestion
  * Generate suggestions for professor
  */
 router.post('/professor-suggestion', async (req, res) => {
@@ -118,7 +118,7 @@ router.post('/professor-suggestion', async (req, res) => {
 });
 
 /**
- * GET /api/ai/conflicts/:courseId
+ * GET /ai/conflicts/:courseId
  * Get deadline conflicts for a course
  */
 router.get('/conflicts/:courseId', async (req, res) => {
@@ -145,44 +145,8 @@ router.get('/conflicts/:courseId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
-
 /**
- * GET /api/ai/load/:studentId
- * Get calculated load data for student
- */
-router.get('/load/:studentId', async (req, res) => {
-  try {
-    const { days = 30 } = req.query;
-
-    const student = await findById(req.params.studentId);
-    if (!student) {
-      return res.status(404).json({ error: 'Student not found' });
-    }
-
-    const deadlines = await _find({
-      course_id: { $in: student.enrolled_courses || [] }
-    }).populate('course_id', 'name');
-
-    const loadData = loadCalculator.calculateLoadRange(
-      deadlines,
-      new Date(),
-      parseInt(days)
-    );
-
-    res.json({
-      success: true,
-      loadData,
-      peakDays: loadCalculator.findPeakLoadDays(loadData)
-    });
-
-  } catch (error) {
-    console.error('Error in load calculation:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-/**
- * GET /api/ai/tips/:userId
+ * GET /ai/tips/:userId
  * Get recent AI tips for a user
  */
 router.get('/tips/:userId', async (req, res) => {
@@ -205,7 +169,7 @@ router.get('/tips/:userId', async (req, res) => {
 });
 
 /**
- * PUT /api/ai/tips/:tipId/read
+ * PUT /ai/tips/:tipId/read
  * Mark tip as read
  */
 router.put('/tips/:tipId/read', async (req, res) => {

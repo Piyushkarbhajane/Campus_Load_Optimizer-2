@@ -1,19 +1,45 @@
 const Deadline = require("../models/deadline");
-const StudentLoad = require("../models/studentload");
-const { calculateLoad } = require("../services/loadCalculator");
+const StudentLoad = require("../models/studentLoad");
+const loadCalculator = require("../services/loadCalculator"); // ✅ Import the entire module
+const User = require("../models/user");
+const Course = require("../models/course"); // ✅ Add this import
 
 exports.getLoad = async (req, res) => {
-    const { studentId } = req.params;
+  try {
+    const { days = 30 } = req.query;
 
-    const deadlines = await Deadline.find();
-    const result = calculateLoad(deadlines);
+    const student = await User.findById(req.params.studentId);
+    if (!student) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
 
-    const record = await StudentLoad.create({
-        student_id: studentId,
-        date: new Date().toISOString().split("T")[0],
-        load_score: result.load,
-        risk_level: result.risk
+    // ✅ Find courses where student is enrolled
+    const courses = await Course.find({
+      student_ids: req.params.studentId
     });
 
-    res.json(record);
+    const courseIds = courses.map(course => course._id);
+
+    // ✅ Find deadlines for those courses
+    const deadlines = await Deadline.find({
+      course_id: { $in: courseIds }
+    }).populate('course_id', 'name');
+
+    // ✅ Use loadCalculator.calculateLoadRange (not destructured)
+    const loadData = loadCalculator.calculateLoadRange(
+      deadlines,
+      new Date(),
+      parseInt(days)
+    );
+
+    res.json({
+      success: true,
+      loadData,
+      peakDays: loadCalculator.findPeakLoadDays(loadData) // ✅ Now this will work
+    });
+
+  } catch (error) {
+    console.error('Error in load calculation:', error);
+    res.status(500).json({ error: error.message });
+  }
 };

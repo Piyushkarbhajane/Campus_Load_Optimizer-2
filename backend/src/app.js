@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth.routes");
 const courseRoutes = require("./routes/course.routes");
 const deadlineRoutes = require("./routes/deadline.routes");
 const loadRoutes = require("./routes/load.routes");
+const aiRoutes = require("./routes/aiRoutes");
 
 const app = express();
 
@@ -15,5 +16,6 @@ app.use("/auth", authRoutes);
 app.use("/courses", courseRoutes);
 app.use("/deadlines", deadlineRoutes);
 app.use("/load", loadRoutes);
+app.use("/ai", aiRoutes);
 
 module.exports = app;

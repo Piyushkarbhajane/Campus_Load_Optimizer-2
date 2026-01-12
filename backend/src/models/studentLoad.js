@@ -1,10 +1,43 @@
-const mongoose = require("mongoose");
+const { Schema, model } = require('mongoose');
 
-const studentLoadSchema = new mongoose.Schema({
-  student_id: String,
-  date: String,
-  load_score: Number,
-  risk_level: String
+const studentLoadSchema = new Schema({
+  student_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+    index: true
+  },
+  date: {
+    type: Date,
+    required: true,
+    index: true
+  },
+  load_score: {
+    type: Number,
+    min: 0,
+    max: 100,
+    required: true
+  },
+  risk_level: {
+    type: String,
+    enum: ['safe', 'warning', 'danger'],
+    required: true
+  },
+  deadlines_count: {
+    type: Number,
+    default: 0
+  },
+  deadlines: [{
+    deadline_id: Schema.Types.ObjectId,
+    title: String,
+    course_name: String,
+    days_until: Number,
+    load_points: Number
+  }]
+}, {
+  timestamps: true
 });
 
-module.exports = mongoose.model("StudentLoad", studentLoadSchema);
+studentLoadSchema.index({ student_id: 1, date: 1 }, { unique: true });
+
+module.exports = model('StudentLoad', studentLoadSchema);

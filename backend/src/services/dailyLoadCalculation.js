@@ -1,9 +1,9 @@
 const { schedule } = require('node-cron');
-const loadCalculator = require('../services/loadCalculator.js');
-const aiService = require('../services/aiService.js');
-const { findOneAndUpdate } = require('../models/studentLoad.js');
-const { find } = require('../../models/User.js');
-const { find: _find } = require('../../models/Deadline.js');
+const loadCalculator = require('./loadCalculator');
+const aiService = require('./aiService');
+const StudentLoad = require('../models/studentLoad');
+const User = require('../models/user');
+const Deadline = require('../models/deadline');
 
 /**
  * Run every day at 6:00 AM
@@ -17,7 +17,7 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
     today.setHours(0, 0, 0, 0);
 
     // Get all students
-    const students = await find({ role: 'student' });
+    const students = await User.find({ role: 'student' });
     console.log(`📊 Processing ${students.length} students...`);
 
     let processedCount = 0;
@@ -26,7 +26,7 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
     for (const student of students) {
       try {
         // Get student's deadlines
-        const deadlines = await _find({
+        const deadlines = await Deadline.find({
           course_id: { $in: student.enrolled_courses || [] }
         }).populate('course_id', 'name');
 
@@ -34,7 +34,7 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
         const todayLoad = loadCalculator.calculateDailyLoad(deadlines, today);
 
         // Save to database (upsert)
-        await findOneAndUpdate(
+        await StudentLoad.findOneAndUpdate(
           {
             student_id: student._id,
             date: today

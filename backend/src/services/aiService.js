@@ -1,6 +1,6 @@
-const { chat } = require('../config/openai.config.js');
-const { create, find, findByIdAndUpdate } = require('../models/aiTip.js');
-const { studentTipPrompt, professorSuggestionPrompt } = require('../utils/aiPrompts.js');
+const { chat } = require('../config/openai.config');
+const { create, find, findByIdAndUpdate } = require('../models/aiTip');
+const { studentTipPrompt, professorSuggestionPrompt } = require('../utils/aiPrompts');
 
 class AIService {
   /**
