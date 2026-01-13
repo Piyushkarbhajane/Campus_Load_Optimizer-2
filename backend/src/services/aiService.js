@@ -1,5 +1,5 @@
 const { chat } = require('../config/openai.config');
-const { create, find, findByIdAndUpdate } = require('../models/aiTip');
+const AiTip = require('../models/aiTip');
 const { studentTipPrompt, professorSuggestionPrompt } = require('../utils/aiPrompts');
 
 class AIService {
@@ -10,16 +10,13 @@ class AIService {
     try {
       // Filter high-load days
       const highLoadDays = loadData.filter(d => d.load_score >= 40);
-
       if (highLoadDays.length === 0) {
         return this.generatePositiveTip(studentData);
       }
-
       const prompt = studentTipPrompt(
         studentData.name,
         highLoadDays
       );
-
       const completion = await chat.completions.create({
         model: "gpt-4o-mini",
         messages: [
@@ -37,9 +34,9 @@ class AIService {
       });
 
       const tipText = completion.choices[0].message.content;
-
+      
       // Save tip to database
-      const savedTip = await create({
+      const savedTip = await AiTip.create({
         user_id: studentData._id,
         tip_text: tipText,
         tip_type: 'student_workload',
@@ -75,7 +72,7 @@ class AIService {
 
     const randomTip = encouragements[Math.floor(Math.random() * encouragements.length)];
 
-    await create({
+    await AiTip.create({
       user_id: studentData._id,
       tip_text: randomTip,
       tip_type: 'study_tips',
@@ -122,7 +119,7 @@ class AIService {
       const suggestion = completion.choices[0].message.content;
 
       // Save suggestion
-      await create({
+      await AiTip.create({
         user_id: courseData.professor_id,
         tip_text: suggestion,
         tip_type: 'professor_suggestion',
@@ -145,7 +142,7 @@ class AIService {
    * Get recent tips for a user
    */
   async getUserTips(userId, limit = 5) {
-    return await find({
+    return await AiTip.find({
       user_id: userId,
       expires_at: { $gt: new Date() }
     })
@@ -157,11 +154,7 @@ class AIService {
    * Mark tip as read
    */
   async markTipAsRead(tipId) {
-    return await findByIdAndUpdate(
-      tipId,
-      { is_read: true },
-      { new: true }
-    );
+   return await AiTip.findByIdAndDelete(tipId);
   }
 }
 

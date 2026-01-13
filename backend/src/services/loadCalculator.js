@@ -51,7 +51,6 @@ class LoadCalculator {
     });
 
     const finalLoad = Math.min(Math.round(totalLoad), 100);
-
     return {
       load_score: finalLoad,
       risk_level: this.getRiskLevel(finalLoad),
@@ -88,7 +87,6 @@ class LoadCalculator {
       date.setDate(date.getDate() + i);
 
       const dailyLoad = this.calculateDailyLoad(deadlines, date);
-
       loadData.push({
         date: date.toISOString().split('T')[0],
         ...dailyLoad

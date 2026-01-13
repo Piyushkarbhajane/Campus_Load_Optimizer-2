@@ -1,13 +1,11 @@
 function studentTipPrompt(studentName, loadData) {
   const formattedData = loadData
-    .map(d => `- ${d.date}: ${d.load_score}% load (${d.deadlines_count} deadlines, ${d.risk_level} level)`)
+    .map(d => `- ${d.date}: ${d.load_score}% load (${d.deadlines_count} deadlines, ${d.risk_level} level),deadlines: ${d.deadlines.map(dl => `${dl.title} (${dl.course_name})`).join(', ')}`)
     .join('\n');
-
   return `Student: ${studentName}
 
 Their upcoming workload:
 ${formattedData}
-
 Provide:
 1. Brief analysis of their situation (2 sentences max)
 2. One specific, actionable tip to manage this workload

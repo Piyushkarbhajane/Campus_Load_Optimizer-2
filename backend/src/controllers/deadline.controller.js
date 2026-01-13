@@ -1,8 +1,20 @@
 const Deadline = require("../models/deadline");
+const ProfessorConflictService = require("../services/professorService");
 
 exports.createDeadline = async (req, res) => {
-  const deadline = await Deadline.create(req.body);
-  res.json(deadline);
+  try {
+    const deadline = await Deadline.create(req.body);
+    ProfessorConflictService
+      .analyzeDeadlineImpact(deadline)
+      .catch(err => console.error('Conflict analysis failed:', err));
+
+    res.status(201).json({
+      success: true,
+      deadline
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 };
 
 exports.getDeadlines = async (req, res) => {

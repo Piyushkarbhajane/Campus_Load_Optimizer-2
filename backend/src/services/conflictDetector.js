@@ -18,10 +18,11 @@ class ConflictDetector {
             title: d.title,
             type: d.type,
             difficulty: d.difficulty,
-            course_name: d.course_name
+            course_id: d.course_id?._id || d.course_id, // ✅ Add course_id
+            course_name: d.course_id?.name || 'Unknown Course' // ✅ FIXED: Access nested name
           })),
           severity: this.calculateSeverity(items),
-          total_difficulty: items.reduce((sum, d) => sum + d.difficulty, 0)
+          total_difficulty: items.reduce((sum, d) => sum + (d.difficulty || 0), 0)
         });
       }
     }
@@ -53,7 +54,7 @@ class ConflictDetector {
   calculateSeverity(deadlines) {
     const count = deadlines.length;
     const hasExam = deadlines.some(d => d.type === 'exam');
-    const avgDifficulty = deadlines.reduce((sum, d) => sum + d.difficulty, 0) / count;
+    const avgDifficulty = deadlines.reduce((sum, d) => sum + (d.difficulty || 0), 0) / count;
 
     if (hasExam && count >= 2) return 'critical';
     if (count >= 3) return 'high';

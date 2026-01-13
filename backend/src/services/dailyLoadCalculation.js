@@ -4,12 +4,13 @@ const aiService = require('./aiService');
 const StudentLoad = require('../models/studentLoad');
 const User = require('../models/user');
 const Deadline = require('../models/deadline');
+const Course = require('../models/course');
 
 /**
  * Run every day at 6:00 AM
  * Cron format: minute hour day month dayOfWeek
  */
-const dailyLoadJob = schedule('0 6 * * *', async () => {
+const dailyLoadJob = async () => {
   console.log('🤖 Running daily load calculation job...');
   
   try {
@@ -25,10 +26,16 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
 
     for (const student of students) {
       try {
+        
         // Get student's deadlines
-        const deadlines = await Deadline.find({
-          course_id: { $in: student.enrolled_courses || [] }
+       const courses = await Course.find({ student_ids: student._id });
+       console.log(`     - Student ${student._id}: Enrolled in ${courses.length} courses`);
+       const courseIds = courses.map(c => c._id);
+
+         const deadlines = await Deadline.find({
+        course_id: { $in: courseIds }
         }).populate('course_id', 'name');
+        console.log(`     - Student ${student._id}: Found ${deadlines.length} deadlines`);
 
         // Calculate today's load
         const todayLoad = loadCalculator.calculateDailyLoad(deadlines, today);
@@ -58,7 +65,7 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
         // Generate AI tip if high load
         if (todayLoad.risk_level === 'danger' || todayLoad.risk_level === 'warning') {
           const loadData = loadCalculator.calculateLoadRange(deadlines, today, 7);
-          await aiService.generateStudentTip(student, loadData);
+         await aiService.generateStudentTip(student, loadData);
           tipsGenerated++;
         }
 
@@ -74,16 +81,17 @@ const dailyLoadJob = schedule('0 6 * * *', async () => {
   } catch (error) {
     console.error('❌ Error in daily load calculation job:', error);
   }
-}, {
-  timezone: "Asia/Kolkata" 
-});
-
-// Export for manual triggering
-const job = dailyLoadJob;
+};
 
 const runNow = async () => {
   console.log('🔧 Manually triggering daily load calculation...');
+  await dailyLoadJob();
 };
+const job = schedule(
+  '0 6 * * *',
+  dailyLoadJob,
+  { timezone: 'Asia/Kolkata' }
+);
 
 module.exports = {
   job,
