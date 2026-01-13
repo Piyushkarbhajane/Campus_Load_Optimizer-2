@@ -2,10 +2,11 @@ const { Router } = require('express');
 const aiService = require('../services/aiService');
 const loadCalculator = require('../services/loadCalculator');
 const conflictDetector = require('../services/conflictDetector');
-const { find } = require('../models/studentLoad');
-const { findById } = require('../models/user');
-const { findById: _findById } = require('../models/course');
-const { find: _find } = require('../models/deadline');
+
+const User = require('../models/user');
+const Course = require('../models/course');
+const Deadline = require('../models/deadline');
+const StudentLoad = require('../models/studentLoad');
 
 const router = Router();
 
@@ -17,16 +18,25 @@ router.post('/student-tip', async (req, res) => {
   try {
     const { studentId } = req.body;
 
-    // Get student data
-    const student = await findById(studentId);
+    const student = await User.findById(studentId);
     if (!student) {
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    // Get student's deadlines
-    const deadlines = await _find({
-      course_id: { $in: student.enrolled_courses || [] }
-    }).populate('course_id', 'name');
+    // Find courses where this student is enrolled
+    const courses = await Course.find({
+      student_ids: studentId
+    });
+
+    const courseIds = courses.map(course => course._id);
+
+    // Get deadlines for those courses with populated course_id
+    const deadlines = await Deadline.find({
+      course_id: { $in: courseIds }
+    }).populate('course_id', 'name'); // ✅ This populates course name
+
+    console.log('Found courses:', courseIds.length);
+    console.log('Found deadlines:', deadlines.length);
 
     // Calculate load for next 7 days
     const loadData = loadCalculator.calculateLoadRange(deadlines, new Date(), 7);
@@ -55,12 +65,19 @@ router.post('/student-tip', async (req, res) => {
 router.post('/professor-suggestion', async (req, res) => {
   try {
     const { courseId } = req.body;
-    const course = await _findById(courseId).populate('professor_id', 'name');
+    
+    const course = await Course.findById(courseId).populate('professor_id', 'name');
     if (!course) {
       return res.status(404).json({ error: 'Course not found' });
     }
 
-    const deadlines = await _find({ course_id: courseId });
+    // ✅ POPULATE course_id when fetching deadlines
+    const deadlines = await Deadline.find({ 
+      course_id: courseId 
+    }).populate('course_id', 'name'); // ✅ Add this populate
+
+    console.log('Found deadlines for course:', deadlines.length);
+    console.log('Sample deadline:', deadlines[0]); // Debug
 
     // Detect conflicts
     const conflicts = conflictDetector.detectConflicts(deadlines);
@@ -70,24 +87,64 @@ router.post('/professor-suggestion', async (req, res) => {
     for (let i = 0; i < 14; i++) {
       const date = new Date();
       date.setDate(date.getDate() + i);
+      
+      const startOfDay = new Date(date);
+      startOfDay.setHours(0, 0, 0, 0);
+      
+      const endOfDay = new Date(date);
+      endOfDay.setHours(23, 59, 59, 999);
 
-      // Get all students' loads for this date
-      const studentLoads = await find({
-        student_id: { $in: course.student_ids },
-        date: {
-          $gte: new Date(date.setHours(0, 0, 0, 0)),
-          $lt: new Date(date.setHours(23, 59, 59, 999))
+      // Get all students in this course
+      const students = course.student_ids;
+
+      if (students.length > 0) {
+        // Get deadlines for all students on this date
+        const studentCourses = await Course.find({
+          student_ids: { $in: students }
+        });
+
+        const allCourseIds = studentCourses.map(c => c._id);
+
+        const dailyDeadlines = await Deadline.find({
+          course_id: { $in: allCourseIds },
+          deadline_date: {
+            $gte: startOfDay,
+            $lte: endOfDay
+          }
+        }).populate('course_id', 'name');
+
+        // Calculate average load using loadCalculator
+        let totalLoad = 0;
+        for (const studentId of students) {
+          // Get courses for this student
+          const studentCourses = await Course.find({
+            student_ids: studentId
+          });
+          
+          const studentCourseIds = studentCourses.map(c => c._id);
+          
+          // Get deadlines for this student
+          const studentDeadlines = await Deadline.find({
+            course_id: { $in: studentCourseIds }
+          }).populate('course_id', 'name');
+
+          // Calculate load for this student on this date
+          const dailyLoad = loadCalculator.calculateDailyLoad(studentDeadlines, date);
+          totalLoad += dailyLoad.load_score;
         }
-      });
 
-      const avgLoad = studentLoads.length > 0
-        ? studentLoads.reduce((sum, sl) => sum + sl.load_score, 0) / studentLoads.length
-        : 0;
+        const avgLoad = students.length > 0 ? Math.round(totalLoad / students.length) : 0;
 
-      classLoadData.push({
-        date: date.toISOString().split('T')[0],
-        average_load: Math.round(avgLoad)
-      });
+        classLoadData.push({
+          date: startOfDay.toISOString().split('T')[0],
+          average_load: avgLoad
+        });
+      } else {
+        classLoadData.push({
+          date: startOfDay.toISOString().split('T')[0],
+          average_load: 0
+        });
+      }
     }
 
     // Generate AI suggestion
@@ -123,9 +180,15 @@ router.post('/professor-suggestion', async (req, res) => {
  */
 router.get('/conflicts/:courseId', async (req, res) => {
   try {
-    const deadlines = await _find({
+    // ✅ ADD POPULATE HERE
+    const deadlines = await Deadline.find({
       course_id: req.params.courseId
-    }).populate('course_id', 'name');
+    }).populate('course_id', 'name'); // ✅ This will fix "Unknown Course"
+
+    console.log('Found deadlines for conflict detection:', deadlines.length);
+    if (deadlines.length > 0) {
+      console.log('Sample deadline with course:', deadlines[0]);
+    }
 
     const conflicts = conflictDetector.detectConflicts(deadlines);
 
@@ -145,6 +208,7 @@ router.get('/conflicts/:courseId', async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 /**
  * GET /ai/tips/:userId
  * Get recent AI tips for a user
