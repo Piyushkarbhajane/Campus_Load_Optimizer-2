@@ -15,7 +15,7 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 class APIService {
   constructor() {
-    this.baseURL = 'http://localhost:5000';
+    this.baseURL = import.meta.env.VITE_API_URL;
     this.refreshTokenTimeout = null;
     this.initializeAuth();
   }
