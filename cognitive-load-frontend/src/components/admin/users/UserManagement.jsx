@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { toast } from 'react-hot-toast';
 import { adminService } from '../../../services/adminService';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus, Users, Search, Filter, Edit, Trash2 } from 'lucide-react';
 
 const UserManagement = () => {
   const [loading, setLoading] = useState(true);
@@ -80,8 +83,12 @@ const UserManagement = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchString = searchTerm.toLowerCase();
+    const name = user.name || '';
+    const email = user.email || '';
+
+    const matchesSearch = name.toLowerCase().includes(searchString) ||
+      email.toLowerCase().includes(searchString);
     const matchesRole = roleFilter === 'all' || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
@@ -200,7 +207,6 @@ const UserManagement = () => {
                 onChange={(e) => setRoleFilter(e.target.value)}
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
-                <option value="all">All Roles</option>
                 <option value="student">Students</option>
                 <option value="professor">Professors</option>
                 <option value="admin">Admins</option>

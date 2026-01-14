@@ -139,7 +139,6 @@ const Signup = () => {
                 >
                   <option value="student">Student</option>
                   <option value="professor">Professor</option>
-                  <option value="admin">Administrator</option>
                 </select>
               </div>
             </div>
