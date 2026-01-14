@@ -52,10 +52,13 @@ router.get('/callback', async (req, res) => {
         await googleCalendarService.storeUserTokens(userId, tokens);
 
         // Redirect to frontend success page
-        res.redirect(`http://localhost:5173/student/calendar?auth=success`);
+        const frontendUrl = process.env.FRONTEND_URL;
+
+res.redirect(`${frontendUrl}/student/calendar?auth=success`);
+
     } catch (error) {
         console.error('Error in OAuth callback:', error);
-        res.redirect(`http://localhost:5173/student/calendar?auth=error`);
+       res.redirect(`${frontendUrl}/student/calendar?auth=error`);
     }
 });
 
