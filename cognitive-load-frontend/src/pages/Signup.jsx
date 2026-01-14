@@ -64,7 +64,7 @@ const Signup = () => {
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold text-lg">CL</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">CLMS</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">StudySync</span>
           </Link>
           
           <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
