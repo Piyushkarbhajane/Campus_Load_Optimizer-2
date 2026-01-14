@@ -51,7 +51,7 @@ const Landing = () => {
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl flex items-center justify-center">
               <span className="text-white font-bold">CL</span>
             </div>
-            <span className="text-2xl font-bold text-gray-900 dark:text-white">CLMS</span>
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">StudySync</span>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -159,7 +159,7 @@ const Landing = () => {
               transition={{ duration: 0.8 }}
             >
               <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
-                Why Choose CLMS?
+                Why Choose StudySync?
               </h2>
               <p className="text-lg text-gray-600 dark:text-gray-300 mb-8">
                 Our system goes beyond traditional scheduling to consider the human element 
@@ -191,7 +191,7 @@ const Landing = () => {
             >
               <h3 className="text-2xl font-bold mb-4">Ready to Get Started?</h3>
               <p className="mb-6 opacity-90">
-                Join thousands of students and educators already using CLMS to create 
+                Join thousands of students and educators already using StudySync to create 
                 better learning experiences.
               </p>
               
@@ -234,7 +234,7 @@ const Landing = () => {
             <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">CL</span>
             </div>
-            <span className="text-xl font-bold">CLMS</span>
+            <span className="text-xl font-bold">StudySync</span>
           </div>
           
           <p className="text-gray-400 mb-4">
