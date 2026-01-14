@@ -1,0 +1,12 @@
+/backend/node_modules
+/backend/.env
+# Environment variables
+/cognitive-load-frontend/.env
+
+# Node dependencies
+/cognitive-load-frontend/node_modules
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
